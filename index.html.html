@@ -1,0 +1,1368 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ระบบบริหารจัดการความเสี่ยง </title>
+</head>
+
+<body>
+
+    <!-- โลโก้ -->
+    <div style="text-align:center; margin-top:20px;">
+        <img src="ตราองค์การตลาด.svg.png"
+             alt="โลโก้องค์การตลาด"
+             width="180">
+    </div>
+
+</body>
+</html>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Sarabun',Arial,sans-serif;background:linear-gradient(135deg,#1e3c72 0%,#2a5298 50%,#1e3c72 100%);min-height:100vh;}
+ 
+/* ============ LOGIN SCREEN ============ */
+#loginScreen{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px;}
+.login-card{background:#fff;border-radius:20px;box-shadow:0 30px 80px rgba(0,0,0,.4);overflow:hidden;width:100%;max-width:420px;}
+.login-hdr{background:linear-gradient(160deg,#0a1628 0%,#0d2255 40%,#1a3a80 70%,#0d2255 100%);padding:32px 28px 26px;text-align:center;color:#fff;position:relative;overflow:hidden;}
+.login-hdr::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 0%,rgba(212,175,55,.18) 0%,transparent 65%);pointer-events:none;}
+.login-hdr::after{content:'';position:absolute;bottom:0;left:0;right:0;height:3px;background:linear-gradient(90deg,transparent,#d4af37,#f5d97e,#d4af37,transparent);}
+.logo-wrap{display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:14px;}
+.logo-circle{width:70px;height:70px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#f5e17a,#d4af37 45%,#8b6914);border:3px solid #f5d97e;display:flex;align-items:center;justify-content:center;box-shadow:0 0 22px rgba(212,175,55,.55),inset 0 2px 4px rgba(255,255,255,.3);flex-shrink:0;font-size:2em;}
+.logo-text{text-align:left;}
+.logo-text .org{font-size:1.45em;font-weight:900;letter-spacing:.5px;background:linear-gradient(135deg,#f5e17a,#d4af37,#f5d97e);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1.15;}
+.logo-text .ministry{font-size:.88em;color:rgba(255,255,255,.75);letter-spacing:.5px;margin-top:1px;}
+.login-hdr .sys-title{font-size:.95em;font-weight:700;color:rgba(255,255,255,.92);margin-top:4px;letter-spacing:.3px;}
+.login-hdr .sys-sub{font-size:.78em;color:rgba(212,175,55,.8);margin-top:3px;letter-spacing:.8px;text-transform:uppercase;}
+.login-body{padding:32px;}
+.login-err{background:#fee2e2;border:1px solid #fca5a5;color:#991b1b;padding:10px 14px;border-radius:8px;font-size:.87em;margin-bottom:16px;display:none;}
+.login-err.show{display:block;}
+.lf{margin-bottom:18px;}
+.lf label{display:block;font-weight:700;font-size:.88em;color:#374151;margin-bottom:6px;}
+.lf input{width:100%;padding:12px 14px;border:2px solid #e5e7eb;border-radius:10px;font-size:.95em;font-family:inherit;transition:.2s;background:#f9fafb;}
+.lf input:focus{outline:none;border-color:#2a5298;background:#fff;box-shadow:0 0 0 3px rgba(42,82,152,.12);}
+.lf .pw-wrap{position:relative;}
+.lf .pw-wrap input{padding-right:44px;}
+.pw-eye{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#9ca3af;font-size:1.1em;padding:4px;}
+.btn-login{width:100%;padding:13px;background:linear-gradient(135deg,#1e3c72,#2a5298);color:#fff;border:none;border-radius:10px;font-size:1em;font-weight:700;cursor:pointer;font-family:inherit;transition:.2s;margin-top:4px;}
+.btn-login:hover{opacity:.9;transform:translateY(-1px);}
+.btn-login:disabled{opacity:.6;cursor:not-allowed;transform:none;}
+.login-hint{margin-top:20px;background:#f0f9ff;border:1px solid #bae6fd;border-radius:10px;padding:14px;}
+.login-hint h4{color:#0369a1;font-size:.85em;margin-bottom:8px;}
+.login-hint table{width:100%;font-size:.8em;border-collapse:collapse;}
+.login-hint td{padding:3px 6px;color:#374151;}
+.login-hint td:first-child{font-weight:700;color:#0369a1;white-space:nowrap;}
+.badge-role{display:inline-block;padding:2px 8px;border-radius:5px;font-size:.75em;font-weight:700;}
+.r-admin{background:#fef3c7;color:#92400e;}
+.r-editor{background:#dbeafe;color:#1e40af;}
+.r-viewer{background:#d1fae5;color:#065f46;}
+ 
+#appScreen{display:none;}
+.wrap{max-width:1500px;margin:0 auto;background:#fff;border-radius:0;box-shadow:0 20px 60px rgba(0,0,0,.3);}
+.hdr{background:linear-gradient(160deg,#0a1628 0%,#0d2255 40%,#1a3a80 70%,#0a1628 100%);color:#fff;padding:0;position:relative;overflow:hidden;}
+.hdr::after{content:'';position:absolute;bottom:0;left:0;right:0;height:3px;background:linear-gradient(90deg,transparent,#d4af37,#f5d97e,#d4af37,transparent);}
+.hdr-inner{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;padding:14px 26px 16px;}
+.hdr-logo{display:flex;align-items:center;gap:12px;}
+.hdr-logo-text{}
+.hdr-logo-text .org{font-size:1.15em;font-weight:900;letter-spacing:.3px;background:linear-gradient(135deg,#f5e17a,#d4af37,#f5d97e);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1.2;}
+.hdr-logo-text .ministry{font-size:.76em;color:rgba(255,255,255,.7);letter-spacing:.3px;margin-top:1px;}
+.hdr-divider{width:1px;height:44px;background:linear-gradient(to bottom,transparent,rgba(212,175,55,.5),transparent);margin:0 4px;}
+.hdr-sys{}
+.hdr-sys h1{font-size:1.05em;font-weight:700;color:#fff;letter-spacing:.2px;}
+.hdr-sys p{font-size:.76em;color:rgba(212,175,55,.8);margin-top:2px;letter-spacing:.5px;}
+.hdr-right{display:flex;align-items:center;gap:14px;}
+.user-chip{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.12);border:1px solid rgba(212,175,55,.25);padding:7px 13px;border-radius:30px;}
+.user-avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#d4af37,#8b6914);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.88em;color:#0a1628;}
+.user-info{text-align:left;}
+.user-name{font-weight:700;font-size:.86em;}
+.user-role{font-size:.73em;color:rgba(212,175,55,.85);}
+.btn-logout{background:rgba(212,175,55,.15);border:1px solid rgba(212,175,55,.4);color:#f5d97e;padding:7px 14px;border-radius:8px;cursor:pointer;font-size:.8em;font-weight:700;font-family:inherit;transition:.2s;}
+.btn-logout:hover{background:rgba(212,175,55,.28);}
+ 
+/* TABS */
+.tabs{display:flex;background:#0d1f4a;border-bottom:3px solid #d4af37;overflow-x:auto;}
+.tab{flex:1;min-width:fit-content;padding:13px 10px;text-align:center;cursor:pointer;font-weight:700;font-size:.85em;color:rgba(255,255,255,.6);border:none;background:none;transition:.2s;white-space:nowrap;font-family:inherit;}
+.tab:hover{background:rgba(212,175,55,.12);color:rgba(255,255,255,.9);}
+.tab.on{background:#fff;color:#0d2255;border-bottom:3px solid #d4af37;}
+.tab.locked{opacity:.35;cursor:not-allowed;}
+.tab-lock-icon{font-size:.75em;margin-left:3px;}
+ 
+/* PANELS */
+.panel{display:none;padding:22px;}
+.panel.on{display:block;}
+ 
+/* METRICS */
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:14px;margin-bottom:22px;}
+.met{color:#fff;padding:18px 14px;border-radius:12px;text-align:center;}
+.met.blue{background:linear-gradient(135deg,#1e3c72,#2a5298);}
+.met.red{background:linear-gradient(135deg,#c0392b,#922b21);}
+.met.orange{background:linear-gradient(135deg,#d35400,#a04000);}
+.met.yellow{background:linear-gradient(135deg,#b7770d,#9c6007);}
+.met.green{background:linear-gradient(135deg,#1e8449,#196f3d);}
+.met-n{font-size:2.2em;font-weight:700;}
+.met-l{font-size:.78em;margin-top:3px;opacity:.9;}
+ 
+/* CHARTS */
+.charts{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px;}
+.cbox{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:18px;box-shadow:0 2px 8px rgba(0,0,0,.07);}
+.cbox h3{margin-bottom:14px;color:#1e3c72;font-size:.9em;}
+ 
+/* EWS */
+.ews{background:linear-gradient(135deg,#c0392b,#922b21);color:#fff;border-radius:12px;padding:18px;margin-bottom:20px;}
+.ews h3{font-size:1em;margin-bottom:8px;}
+.ews-item{background:rgba(255,255,255,.18);padding:9px 13px;border-radius:8px;border-left:4px solid #fff;margin-top:7px;font-size:.84em;}
+ 
+/* FORM */
+.form-card{background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:24px;box-shadow:0 2px 8px rgba(0,0,0,.07);}
+.sec-title{font-size:1.15em;font-weight:700;color:#1e3c72;margin-bottom:18px;padding-bottom:9px;border-bottom:2px solid #e2e8f0;}
+.sub-title{background:#eff6ff;color:#1e40af;padding:9px 13px;border-radius:8px;border-left:4px solid #2563eb;font-weight:700;margin:20px 0 13px;font-size:.88em;}
+.fg{margin-bottom:14px;}
+.fg label{display:block;font-weight:600;margin-bottom:5px;color:#374151;font-size:.88em;}
+.req{color:#e74c3c;}
+.fg input,.fg select,.fg textarea{width:100%;padding:9px 11px;border:2px solid #d1d5db;border-radius:8px;font-size:.9em;font-family:inherit;transition:.2s;}
+.fg input:focus,.fg select:focus,.fg textarea:focus{outline:none;border-color:#2a5298;box-shadow:0 0 0 3px rgba(42,82,152,.1);}
+.fg textarea{min-height:68px;resize:vertical;}
+.fg small{color:#6b7280;font-size:.78em;margin-top:3px;display:block;}
+.row3{display:grid;grid-template-columns:1fr 1fr 1.4fr;gap:12px;align-items:end;}
+.score-box{background:linear-gradient(135deg,#1e3c72,#2a5298);color:#fff;padding:10px;border-radius:8px;text-align:center;font-weight:700;font-size:.9em;min-height:52px;display:flex;align-items:center;justify-content:center;}
+ 
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:5px;padding:9px 16px;border:none;border-radius:8px;font-size:.83em;font-weight:700;cursor:pointer;font-family:inherit;transition:.2s;}
+.btn:hover{opacity:.88;transform:translateY(-1px);}
+.btn:disabled{opacity:.45;cursor:not-allowed;transform:none;}
+.btn-primary{background:linear-gradient(135deg,#1e3c72,#2a5298);color:#fff;}
+.btn-gray{background:linear-gradient(135deg,#6b7280,#4b5563);color:#fff;}
+.btn-green{background:linear-gradient(135deg,#1e8449,#196f3d);color:#fff;}
+.btn-blue{background:linear-gradient(135deg,#1d4ed8,#1e40af);color:#fff;}
+.btn-red{background:linear-gradient(135deg,#c0392b,#922b21);color:#fff;}
+.btn-orange{background:linear-gradient(135deg,#d97706,#b45309);color:#fff;}
+.btn-purple{background:linear-gradient(135deg,#7c3aed,#5b21b6);color:#fff;}
+.btn-sm{padding:6px 11px;font-size:.78em;}
+ 
+/* TABLE */
+.tbl-wrap{overflow-x:auto;margin-top:14px;}
+table{width:100%;border-collapse:collapse;font-size:.82em;}
+th{background:#f8fafc;padding:10px 8px;text-align:left;font-weight:700;color:#374151;border-bottom:2px solid #e2e8f0;white-space:nowrap;}
+td{padding:9px 8px;border-bottom:1px solid #f1f5f9;vertical-align:top;}
+tr:hover td{background:#f8fafc;}
+.badge{display:inline-block;padding:2px 8px;border-radius:5px;font-size:.76em;font-weight:700;white-space:nowrap;}
+.b-vlow{background:#c8e6c9;color:#1b5e20;}
+.b-low{background:#a5d6a7;color:#1b5e20;}
+.b-med{background:#fff9c4;color:#6d4c00;}
+.b-high{background:#ffe0b2;color:#bf360c;}
+.b-vhigh{background:#c62828;color:#fff;}
+.b-type{background:#dbeafe;color:#1e40af;}
+ 
+/* FILTER */
+.fbox{background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:16px;margin-bottom:16px;}
+.fbox h3{font-size:.88em;font-weight:700;color:#1e3c72;margin-bottom:10px;}
+.fgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:10px;}
+.fgrid input,.fgrid select{padding:7px 9px;border:1.5px solid #d1d5db;border-radius:7px;font-size:.83em;font-family:inherit;width:100%;}
+ 
+/* MODAL */
+.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9000;overflow-y:auto;padding:30px 14px;}
+.modal-inner{background:#fff;border-radius:14px;max-width:720px;margin:0 auto;box-shadow:0 20px 60px rgba(0,0,0,.35);overflow:hidden;}
+.modal-hdr{background:linear-gradient(135deg,#1e3c72,#2a5298);color:#fff;padding:16px 22px;display:flex;justify-content:space-between;align-items:center;}
+.modal-hdr h2{margin:0;font-size:1em;}
+.modal-body{padding:22px;max-height:72vh;overflow-y:auto;}
+.close-btn{background:rgba(255,255,255,.2);border:none;color:#fff;font-size:1.3em;width:30px;height:30px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.2s;}
+.close-btn:hover{background:rgba(255,255,255,.35);}
+ 
+/* MATRIX */
+.mat-grid{display:grid;grid-template-columns:80px repeat(5,1fr);gap:3px;}
+.mat-cell{display:flex;align-items:center;justify-content:center;min-height:62px;border-radius:7px;font-weight:700;font-size:1.3em;color:#fff;cursor:default;transition:.15s;}
+.mat-cell:hover{transform:scale(1.06);box-shadow:0 4px 14px rgba(0,0,0,.25);}
+.mat-label{display:flex;align-items:center;justify-content:flex-end;padding-right:8px;font-weight:700;font-size:.78em;color:#374151;min-height:62px;}
+.mat-label-x{text-align:center;padding-top:7px;font-weight:700;font-size:.78em;color:#374151;}
+.legend{display:flex;justify-content:center;gap:14px;flex-wrap:wrap;margin-top:20px;}
+.leg-item{display:flex;align-items:center;gap:6px;font-weight:600;font-size:.84em;}
+.leg-dot{width:20px;height:20px;border-radius:4px;}
+.c1,.c2{background:#1b5e20;}
+.c3,.c4{background:#66bb6a;}
+.c5,.c6,.c8,.c9{background:#fdd835;color:#333!important;}
+.c10,.c12{background:#ef6c00;}
+.c15,.c16,.c20,.c25{background:#c62828;}
+ 
+/* USER MANAGEMENT */
+.user-table-wrap{overflow-x:auto;}
+.role-select{padding:5px 8px;border:1.5px solid #d1d5db;border-radius:6px;font-size:.8em;font-family:inherit;}
+.access-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:3px;font-size:.78em;}
+.access-cell{padding:5px 8px;border-radius:5px;text-align:center;font-weight:600;}
+.ac-yes{background:#d1fae5;color:#065f46;}
+.ac-no{background:#fee2e2;color:#991b1b;}
+.ac-own{background:#fef3c7;color:#92400e;}
+ 
+/* TOAST */
+#toast{position:fixed;bottom:20px;right:20px;padding:11px 18px;border-radius:10px;font-weight:700;font-size:.88em;color:#fff;z-index:99999;opacity:0;transform:translateY(14px);transition:.3s;pointer-events:none;max-width:300px;}
+#toast.show{opacity:1;transform:translateY(0);}
+.t-ok{background:#1e8449;}
+.t-err{background:#c0392b;}
+.t-warn{background:#d97706;}
+.t-info{background:#1d4ed8;}
+ 
+/* Permission overlay */
+.no-access{background:#fef9f0;border:2px dashed #fde68a;border-radius:12px;padding:40px;text-align:center;color:#92400e;}
+.no-access .icon{font-size:2.5em;margin-bottom:12px;}
+ 
+@media(max-width:700px){
+  .row3{grid-template-columns:1fr 1fr;}
+  .row3 .score-box{grid-column:span 2;}
+  .hdr{padding:14px 16px;}
+}
+</style>
+</head>
+<body>
+ 
+<!-- ============ LOGIN SCREEN ============ -->
+<div id="loginScreen">
+  <div class="login-card">
+    <div class="login-hdr">
+      <div class="logo-wrap">
+        <!-- ตราองค์การตลาด กระทรวงมหาดไทย — SVG Inline -->
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="88" height="88" style="flex-shrink:0;filter:drop-shadow(0 0 14px rgba(212,175,55,.7));">
+          <defs>
+            <radialGradient id="bgGrad" cx="50%" cy="42%" r="50%">
+              <stop offset="0%" stop-color="#1a2f6e"/>
+              <stop offset="100%" stop-color="#05113a"/>
+            </radialGradient>
+            <linearGradient id="goldRing" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%"   stop-color="#f5e17a"/>
+              <stop offset="25%"  stop-color="#d4af37"/>
+              <stop offset="50%"  stop-color="#f5e17a"/>
+              <stop offset="75%"  stop-color="#8b6914"/>
+              <stop offset="100%" stop-color="#d4af37"/>
+            </linearGradient>
+            <linearGradient id="goldBody" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%"   stop-color="#f9e97e"/>
+              <stop offset="40%"  stop-color="#d4af37"/>
+              <stop offset="100%" stop-color="#8b6511"/>
+            </linearGradient>
+            <linearGradient id="goldLeaf" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%"   stop-color="#f5e17a"/>
+              <stop offset="100%" stop-color="#8b6914"/>
+            </linearGradient>
+            <filter id="glow">
+              <feGaussianBlur stdDeviation="1.5" result="blur"/>
+              <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+          </defs>
+ 
+          <!-- Outer dark ring -->
+          <circle cx="100" cy="100" r="99" fill="#020c28"/>
+          <!-- Navy background -->
+          <circle cx="100" cy="100" r="94" fill="url(#bgGrad)"/>
+          <!-- Gold outer ring thick -->
+          <circle cx="100" cy="100" r="94" fill="none" stroke="url(#goldRing)" stroke-width="5"/>
+          <!-- Gold inner ring thin -->
+          <circle cx="100" cy="100" r="83" fill="none" stroke="url(#goldRing)" stroke-width="1.8"/>
+          <!-- Gold ring dotted deco -->
+          <circle cx="100" cy="100" r="79" fill="none" stroke="#d4af37" stroke-width=".7" stroke-dasharray="3 4"/>
+ 
+          <!-- === LION BODY (สิงห์) === -->
+          <g filter="url(#glow)" fill="url(#goldBody)">
+            <!-- Body main -->
+            <ellipse cx="100" cy="108" rx="35" ry="22" fill="url(#goldBody)"/>
+            <!-- Haunches rear -->
+            <ellipse cx="76" cy="112" rx="16" ry="18" fill="url(#goldBody)"/>
+            <!-- Front chest -->
+            <ellipse cx="120" cy="107" rx="14" ry="17" fill="url(#goldBody)"/>
+ 
+            <!-- Neck -->
+            <ellipse cx="122" cy="90" rx="11" ry="14" fill="url(#goldBody)"/>
+            <!-- Head -->
+            <circle cx="126" cy="76" r="16" fill="url(#goldBody)"/>
+ 
+            <!-- Mane curls around head -->
+            <ellipse cx="113" cy="72" rx="8" ry="12" fill="#c9a020" opacity=".9"/>
+            <ellipse cx="117" cy="65" rx="7" ry="9" fill="#c9a020" opacity=".85"/>
+            <ellipse cx="127" cy="62" rx="7" ry="8" fill="#c9a020" opacity=".8"/>
+            <ellipse cx="137" cy="67" rx="6" ry="9" fill="#c9a020" opacity=".8"/>
+            <ellipse cx="140" cy="77" rx="5" ry="7" fill="#c9a020" opacity=".75"/>
+ 
+            <!-- Ear -->
+            <ellipse cx="120" cy="62" rx="4" ry="5" fill="url(#goldBody)"/>
+            <ellipse cx="133" cy="60" rx="4" ry="5" fill="url(#goldBody)"/>
+ 
+            <!-- Face features -->
+            <ellipse cx="134" cy="75" rx="4" ry="3" fill="#8b6511"/><!-- nose bridge -->
+            <circle cx="132" cy="73" r="1.8" fill="#020c28"/><!-- eye left -->
+            <circle cx="120" cy="74" r="1.5" fill="#020c28" opacity=".6"/>
+            <path d="M130 79 Q134 82 138 79" stroke="#8b6511" stroke-width="1.2" fill="none"/><!-- mouth -->
+            <!-- Whisker lines -->
+            <line x1="136" y1="77" x2="145" y2="74" stroke="#f5e17a" stroke-width=".7"/>
+            <line x1="136" y1="79" x2="145" y2="79" stroke="#f5e17a" stroke-width=".7"/>
+            <line x1="136" y1="81" x2="144" y2="84" stroke="#f5e17a" stroke-width=".7"/>
+ 
+            <!-- Front legs -->
+            <rect x="110" y="116" width="9" height="22" rx="4" fill="url(#goldBody)"/>
+            <rect x="122" y="118" width="9" height="20" rx="4" fill="url(#goldBody)"/>
+            <!-- Front paws -->
+            <ellipse cx="114" cy="139" rx="6" ry="3.5" fill="url(#goldBody)"/>
+            <ellipse cx="126" cy="137" rx="6" ry="3.5" fill="url(#goldBody)"/>
+ 
+            <!-- Rear legs -->
+            <rect x="68" y="118" width="10" height="20" rx="4" fill="url(#goldBody)"/>
+            <rect x="81" y="120" width="9" height="18" rx="4" fill="url(#goldBody)"/>
+            <!-- Rear paws -->
+            <ellipse cx="73" cy="138" rx="6" ry="3.5" fill="url(#goldBody)"/>
+            <ellipse cx="86" cy="137" rx="6" ry="3.5" fill="url(#goldBody)"/>
+ 
+            <!-- Tail curling up-left -->
+            <path d="M72 110 Q55 95 60 78 Q65 62 75 65 Q80 67 76 72" stroke="url(#goldBody)" stroke-width="6" fill="none" stroke-linecap="round"/>
+            <path d="M76 72 Q72 68 78 64 Q84 60 82 68" stroke="url(#goldBody)" stroke-width="5" fill="none" stroke-linecap="round"/>
+            <!-- Tail tip tuft -->
+            <ellipse cx="80" cy="63" rx="6" ry="5" fill="url(#goldBody)" transform="rotate(-20,80,63)"/>
+ 
+            <!-- Body scale/armour decoration circles -->
+            <circle cx="98" cy="107" r="5" fill="none" stroke="#c9a020" stroke-width="1.2"/>
+            <circle cx="106" cy="104" r="4" fill="none" stroke="#c9a020" stroke-width="1"/>
+            <circle cx="90" cy="104" r="4" fill="none" stroke="#c9a020" stroke-width="1"/>
+ 
+            <!-- Flame/crown on head -->
+            <path d="M126 58 Q122 50 126 44 Q130 50 128 44 Q133 50 130 44 Q135 49 130 57" fill="#f5e17a" opacity=".9"/>
+          </g>
+ 
+          <!-- === BANNER RIBBON === -->
+          <path d="M52 148 Q100 158 148 148 L145 160 Q100 168 55 160 Z" fill="#d4af37"/>
+          <path d="M52 148 Q100 158 148 148 L148 152 Q100 162 52 152 Z" fill="#8b6511"/>
+          <!-- Ribbon tails -->
+          <path d="M52 148 L44 144 L46 158 L55 160 Z" fill="#c9a020"/>
+          <path d="M148 148 L156 144 L154 158 L145 160 Z" fill="#c9a020"/>
+ 
+          <!-- === LAUREL LEAVES === -->
+          <!-- Left branch -->
+          <g fill="url(#goldLeaf)" opacity=".9">
+            <ellipse cx="56" cy="128" rx="9" ry="4" transform="rotate(-50,56,128)"/>
+            <ellipse cx="50" cy="118" rx="9" ry="4" transform="rotate(-60,50,118)"/>
+            <ellipse cx="47" cy="107" rx="9" ry="4" transform="rotate(-70,47,107)"/>
+            <ellipse cx="48" cy="96" rx="8" ry="3.5" transform="rotate(-80,48,96)"/>
+            <ellipse cx="53" cy="87" rx="8" ry="3.5" transform="rotate(-85,53,87)"/>
+          </g>
+          <!-- Right branch -->
+          <g fill="url(#goldLeaf)" opacity=".9">
+            <ellipse cx="144" cy="128" rx="9" ry="4" transform="rotate(50,144,128)"/>
+            <ellipse cx="150" cy="118" rx="9" ry="4" transform="rotate(60,150,118)"/>
+            <ellipse cx="153" cy="107" rx="9" ry="4" transform="rotate(70,153,107)"/>
+            <ellipse cx="152" cy="96" rx="8" ry="3.5" transform="rotate(80,152,96)"/>
+            <ellipse cx="147" cy="87" rx="8" ry="3.5" transform="rotate(85,147,87)"/>
+          </g>
+ 
+          <!-- Stem dots center bottom -->
+          <circle cx="100" cy="152" r="2.5" fill="#f5e17a"/>
+          <circle cx="93"  cy="153" r="1.8" fill="#d4af37"/>
+          <circle cx="107" cy="153" r="1.8" fill="#d4af37"/>
+ 
+          <!-- Bottom text arc path -->
+          <path id="arcText" d="M 38 140 A 65 65 0 0 0 162 140" fill="none"/>
+          <text font-size="9" font-family="'Sarabun',Arial,sans-serif" font-weight="700" fill="#f5e17a" letter-spacing="1">
+            <textPath href="#arcText" startOffset="12%">องค์การตลาด  กระทรวงมหาดไทย</textPath>
+          </text>
+        </svg>
+        <!-- end SVG seal -->
+        <div class="logo-text">
+          <div class="org">องค์การตลาด</div>
+          <div class="ministry">กระทรวงมหาดไทย</div>
+        </div>
+      </div>
+      <div class="sys-title">ระบบบริหารจัดการความเสี่ยง</div>
+      <div class="sys-sub">EWS + Risk Dashboard</div>
+    </div>
+    <div class="login-body">
+      <div class="login-err" id="loginErr">❌ ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง</div>
+      <div class="lf">
+        <label>ชื่อผู้ใช้ (Username)</label>
+        <input type="text" id="inUser" placeholder="กรอกชื่อผู้ใช้" autocomplete="username" onkeydown="if(event.key==='Enter')doLogin()">
+      </div>
+      <div class="lf">
+        <label>รหัสผ่าน (Password)</label>
+        <div class="pw-wrap">
+          <input type="password" id="inPass" placeholder="กรอกรหัสผ่าน" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+          <button class="pw-eye" onclick="togglePw()" title="แสดง/ซ่อนรหัสผ่าน">👁️</button>
+        </div>
+      </div>
+      <button class="btn-login" id="btnLogin" onclick="doLogin()">🔐 เข้าสู่ระบบ</button>
+ 
+      <div class="login-hint">
+        <h4>👤 บัญชีเริ่มต้นสำหรับทดสอบ</h4>
+        <table>
+          <tr><td>admin</td><td>/ admin1234</td><td><span class="badge-role r-admin">Admin</span></td></tr>
+          <tr><td>editor1</td><td>/ editor1234</td><td><span class="badge-role r-editor">Editor</span></td></tr>
+          <tr><td>viewer1</td><td>/ viewer1234</td><td><span class="badge-role r-viewer">Viewer</span></td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+ 
+<!-- ============ APP SCREEN ============ -->
+<div id="appScreen">
+<div class="wrap">
+ 
+<div class="hdr">
+  <div class="hdr-inner">
+    <div class="hdr-logo">
+      <!-- ตราองค์การตลาด — small version -->
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="58" height="58" style="flex-shrink:0;filter:drop-shadow(0 0 8px rgba(212,175,55,.6));">
+        <defs>
+          <radialGradient id="bgG2" cx="50%" cy="42%" r="50%"><stop offset="0%" stop-color="#1a2f6e"/><stop offset="100%" stop-color="#05113a"/></radialGradient>
+          <linearGradient id="gR2" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#f5e17a"/><stop offset="40%" stop-color="#d4af37"/><stop offset="75%" stop-color="#8b6914"/><stop offset="100%" stop-color="#d4af37"/></linearGradient>
+          <linearGradient id="gB2" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#f9e97e"/><stop offset="40%" stop-color="#d4af37"/><stop offset="100%" stop-color="#8b6511"/></linearGradient>
+        </defs>
+        <circle cx="100" cy="100" r="99" fill="#020c28"/>
+        <circle cx="100" cy="100" r="94" fill="url(#bgG2)"/>
+        <circle cx="100" cy="100" r="94" fill="none" stroke="url(#gR2)" stroke-width="5"/>
+        <circle cx="100" cy="100" r="83" fill="none" stroke="url(#gR2)" stroke-width="1.8"/>
+        <circle cx="100" cy="100" r="79" fill="none" stroke="#d4af37" stroke-width=".7" stroke-dasharray="3 4"/>
+        <g fill="url(#gB2)">
+          <ellipse cx="100" cy="108" rx="35" ry="22"/>
+          <ellipse cx="76" cy="112" rx="16" ry="18"/>
+          <ellipse cx="120" cy="107" rx="14" ry="17"/>
+          <ellipse cx="122" cy="90" rx="11" ry="14"/>
+          <circle cx="126" cy="76" r="16"/>
+          <ellipse cx="113" cy="72" rx="8" ry="12" fill="#c9a020" opacity=".9"/>
+          <ellipse cx="117" cy="65" rx="7" ry="9" fill="#c9a020" opacity=".85"/>
+          <ellipse cx="127" cy="62" rx="7" ry="8" fill="#c9a020" opacity=".8"/>
+          <ellipse cx="137" cy="67" rx="6" ry="9" fill="#c9a020" opacity=".8"/>
+          <ellipse cx="140" cy="77" rx="5" ry="7" fill="#c9a020" opacity=".75"/>
+          <ellipse cx="120" cy="62" rx="4" ry="5"/>
+          <ellipse cx="133" cy="60" rx="4" ry="5"/>
+          <circle cx="132" cy="73" r="1.8" fill="#020c28"/>
+          <path d="M130 79 Q134 82 138 79" stroke="#8b6511" stroke-width="1.2" fill="none"/>
+          <rect x="110" y="116" width="9" height="22" rx="4"/>
+          <rect x="122" y="118" width="9" height="20" rx="4"/>
+          <ellipse cx="114" cy="139" rx="6" ry="3.5"/>
+          <ellipse cx="126" cy="137" rx="6" ry="3.5"/>
+          <rect x="68" y="118" width="10" height="20" rx="4"/>
+          <rect x="81" y="120" width="9" height="18" rx="4"/>
+          <ellipse cx="73" cy="138" rx="6" ry="3.5"/>
+          <ellipse cx="86" cy="137" rx="6" ry="3.5"/>
+          <path d="M72 110 Q55 95 60 78 Q65 62 75 65 Q80 67 76 72" stroke="url(#gB2)" stroke-width="6" fill="none" stroke-linecap="round"/>
+          <path d="M76 72 Q72 68 78 64 Q84 60 82 68" stroke="url(#gB2)" stroke-width="5" fill="none" stroke-linecap="round"/>
+          <ellipse cx="80" cy="63" rx="6" ry="5" transform="rotate(-20,80,63)"/>
+          <circle cx="98" cy="107" r="5" fill="none" stroke="#c9a020" stroke-width="1.2"/>
+          <path d="M126 58 Q122 50 126 44 Q130 50 128 44 Q133 50 130 44 Q135 49 130 57" fill="#f5e17a" opacity=".9"/>
+        </g>
+        <path d="M52 148 Q100 158 148 148 L145 160 Q100 168 55 160 Z" fill="#d4af37"/>
+        <path d="M52 148 L44 144 L46 158 L55 160 Z" fill="#c9a020"/>
+        <path d="M148 148 L156 144 L154 158 L145 160 Z" fill="#c9a020"/>
+        <g fill="#d4af37" opacity=".9">
+          <ellipse cx="56" cy="128" rx="9" ry="4" transform="rotate(-50,56,128)"/>
+          <ellipse cx="50" cy="118" rx="9" ry="4" transform="rotate(-60,50,118)"/>
+          <ellipse cx="47" cy="107" rx="9" ry="4" transform="rotate(-70,47,107)"/>
+          <ellipse cx="50" cy="96"  rx="8" ry="3.5" transform="rotate(-80,50,96)"/>
+          <ellipse cx="144" cy="128" rx="9" ry="4" transform="rotate(50,144,128)"/>
+          <ellipse cx="150" cy="118" rx="9" ry="4" transform="rotate(60,150,118)"/>
+          <ellipse cx="153" cy="107" rx="9" ry="4" transform="rotate(70,153,107)"/>
+          <ellipse cx="150" cy="96"  rx="8" ry="3.5" transform="rotate(80,150,96)"/>
+        </g>
+        <path id="arcT2" d="M 38 140 A 65 65 0 0 0 162 140" fill="none"/>
+        <text font-size="9" font-family="'Sarabun',Arial,sans-serif" font-weight="700" fill="#f5e17a" letter-spacing="1">
+          <textPath href="#arcT2" startOffset="12%">องค์การตลาด  กระทรวงมหาดไทย</textPath>
+        </text>
+      </svg>
+      <div class="hdr-logo-text">
+        <div class="org">องค์การตลาด</div>
+        <div class="ministry">กระทรวงมหาดไทย</div>
+      </div>
+      <div class="hdr-divider"></div>
+      <div class="hdr-sys">
+        <h1>ระบบบริหารจัดการความเสี่ยง</h1>
+        <p>EWS + Risk Matrix &nbsp;·&nbsp; v52</p>
+      </div>
+    </div>
+    <div class="hdr-right">
+      <div class="user-chip">
+        <div class="user-avatar" id="uAvatar">—</div>
+        <div class="user-info">
+          <div class="user-name" id="uName">—</div>
+          <div class="user-role" id="uRoleLbl">—</div>
+        </div>
+      </div>
+      <button class="btn-logout" onclick="doLogout()">🚪 ออกจากระบบ</button>
+    </div>
+  </div>
+</div>
+ 
+<div class="tabs" id="tabBar">
+  <button class="tab on"  onclick="goTab(0)">📊 Dashboard</button>
+  <button class="tab"     onclick="goTab(1)">🎯 Risk Matrix</button>
+  <button class="tab"     onclick="goTab(2)" id="tabAdd">➕ บันทึก</button>
+  <button class="tab"     onclick="goTab(3)">📋 จัดการข้อมูล</button>
+  <button class="tab"     onclick="goTab(4)" id="tabAdmin">⚙️ ผู้ใช้งาน</button>
+</div>
+ 
+<!-- PANEL 0: DASHBOARD -->
+<div class="panel on" id="p0">
+  <div id="ewsBox"></div>
+  <div class="metrics" id="metricsBox"></div>
+  <div class="charts">
+    <div class="cbox"><h3>📊 ระดับความเสี่ยงคงเหลือ</h3><canvas id="ch1"></canvas></div>
+    <div class="cbox"><h3>📈 สถานะความเสี่ยง</h3><canvas id="ch2"></canvas></div>
+    <div class="cbox"><h3>🏷️ ประเภทความเสี่ยง</h3><canvas id="ch3"></canvas></div>
+  </div>
+</div>
+ 
+<!-- PANEL 1: MATRIX -->
+<div class="panel" id="p1">
+  <div class="form-card">
+    <h2 class="sec-title" style="text-align:center;">🎯 ตารางประเมินระดับความเสี่ยง (Risk Matrix 5×5)</h2>
+    <div style="max-width:760px;margin:0 auto;">
+      <div style="text-align:center;font-weight:700;margin-bottom:8px;color:#374151;font-size:.9em;">← ผลกระทบ (Impact) →</div>
+      <div class="mat-grid">
+        <div class="mat-label">5 Very High</div>
+        <div class="mat-cell c5">5</div><div class="mat-cell c10">10</div><div class="mat-cell c15">15</div><div class="mat-cell c20">20</div><div class="mat-cell c25">25</div>
+        <div class="mat-label">4 High</div>
+        <div class="mat-cell c4">4</div><div class="mat-cell c8">8</div><div class="mat-cell c12">12</div><div class="mat-cell c16">16</div><div class="mat-cell c20">20</div>
+        <div class="mat-label">3 Medium</div>
+        <div class="mat-cell c3">3</div><div class="mat-cell c6">6</div><div class="mat-cell c9">9</div><div class="mat-cell c12">12</div><div class="mat-cell c15">15</div>
+        <div class="mat-label">2 Low</div>
+        <div class="mat-cell c2">2</div><div class="mat-cell c4">4</div><div class="mat-cell c6">6</div><div class="mat-cell c8">8</div><div class="mat-cell c10">10</div>
+        <div class="mat-label">1 Very Low</div>
+        <div class="mat-cell c1">1</div><div class="mat-cell c2">2</div><div class="mat-cell c3">3</div><div class="mat-cell c4">4</div><div class="mat-cell c5">5</div>
+        <div></div>
+        <div class="mat-label-x">1<br>Remote</div><div class="mat-label-x">2<br>Unlikely</div><div class="mat-label-x">3<br>Possible</div><div class="mat-label-x">4<br>Probable</div><div class="mat-label-x">5<br>Certain</div>
+      </div>
+      <div style="text-align:center;font-weight:700;margin-top:8px;color:#374151;font-size:.9em;">← โอกาสที่จะเกิด (Likelihood) →</div>
+      <div class="legend">
+        <div class="leg-item"><div class="leg-dot" style="background:#1b5e20;"></div>ต่ำมาก (1–2)</div>
+        <div class="leg-item"><div class="leg-dot" style="background:#66bb6a;"></div>ต่ำ (3–4)</div>
+        <div class="leg-item"><div class="leg-dot" style="background:#fdd835;"></div>กลาง (5–9)</div>
+        <div class="leg-item"><div class="leg-dot" style="background:#ef6c00;"></div>สูง (10–14)</div>
+        <div class="leg-item"><div class="leg-dot" style="background:#c62828;"></div>สูงมาก (15–25)</div>
+      </div>
+    </div>
+  </div>
+</div>
+ 
+<!-- PANEL 2: FORM -->
+<div class="panel" id="p2">
+  <div id="p2content"></div>
+</div>
+ 
+<!-- PANEL 3: TABLE -->
+<div class="panel" id="p3">
+  <div class="form-card">
+    <h2 class="sec-title">📋 รายการความเสี่ยงทั้งหมด</h2>
+    <div style="display:flex;flex-wrap:wrap;gap:9px;margin-bottom:14px;" id="tblActions"></div>
+    <div class="fbox">
+      <h3>🔍 ค้นหาและกรองข้อมูล</h3>
+      <div class="fgrid">
+        <div><label style="font-size:.8em;font-weight:600;display:block;margin-bottom:3px;">ค้นหาคำ</label><input type="text" id="srch" placeholder="ค้นหา..." oninput="doFilter()"></div>
+        <div><label style="font-size:.8em;font-weight:600;display:block;margin-bottom:3px;">ประเภท</label>
+          <select id="fType" onchange="doFilter()"><option value="">ทุกประเภท</option><option>ด้านกลยุทธ์</option><option>ด้านการดำเนินงาน</option><option>ด้านการเงิน</option><option>ด้านการปฏิบัติตามกฎระเบียบ</option></select></div>
+        <div><label style="font-size:.8em;font-weight:600;display:block;margin-bottom:3px;">ฝ่าย</label><select id="fDept" onchange="doFilter()"><option value="">ทุกฝ่าย</option></select></div>
+        <div><label style="font-size:.8em;font-weight:600;display:block;margin-bottom:3px;">ระดับคงเหลือ</label>
+          <select id="fLevel" onchange="doFilter()"><option value="">ทุกระดับ</option><option>สูงมาก</option><option>สูง</option><option>กลาง</option><option>ต่ำ</option><option>ต่ำมาก</option></select></div>
+        <div><label style="font-size:.8em;font-weight:600;display:block;margin-bottom:3px;">สถานะ</label>
+          <select id="fStatus" onchange="doFilter()"><option value="">ทุกสถานะ</option><option value="✓">✓ เสร็จสิ้น</option><option value="×">× ไม่สามารถจัดการ</option><option value="○">○ ระหว่างดำเนินการ</option></select></div>
+      </div>
+      <div style="text-align:right;margin-top:9px;"><button class="btn btn-gray btn-sm" onclick="clearFilter()">🔄 ล้างการกรอง</button></div>
+    </div>
+    <span id="recCount" style="font-size:.83em;color:#6b7280;font-weight:600;"></span>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr>
+          <th>#</th><th>เหตุการณ์</th><th>ความเสี่ยง</th><th>ประเภท</th>
+          <th>ก่อนจัดการ</th><th>ผลดำเนินการ</th><th>คงเหลือ</th><th>สถานะ</th>
+          <th>วิธีจัดการ</th><th>ผู้รับผิดชอบ</th><th>ฝ่าย</th><th>บันทึกโดย</th><th>วันบันทึก</th><th>จัดการ</th>
+        </tr></thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+ 
+<!-- PANEL 4: USER ADMIN -->
+<div class="panel" id="p4">
+  <div id="p4content"></div>
+</div>
+ 
+</div><!-- /.wrap -->
+</div><!-- /#appScreen -->
+ 
+<!-- EDIT MODAL -->
+<div class="modal" id="editModal">
+  <div class="modal-inner">
+    <div class="modal-hdr"><h2>✏️ แก้ไขข้อมูลความเสี่ยง</h2><button class="close-btn" onclick="closeModal()">×</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="E_idx">
+      <div class="fg"><label>เหตุการณ์</label><textarea id="E_event"></textarea></div>
+      <div class="fg"><label>ความเสี่ยง</label><textarea id="E_risk"></textarea></div>
+      <div class="fg"><label>ประเภทความเสี่ยง</label>
+        <select id="E_rtype"><option>ด้านกลยุทธ์</option><option>ด้านการดำเนินงาน</option><option>ด้านการเงิน</option><option>ด้านการปฏิบัติตามกฎระเบียบ</option></select></div>
+      <div class="sub-title">ก่อนการจัดการ</div>
+      <div class="row3">
+        <div class="fg"><label>โอกาสเกิด</label><input type="number" id="E_p1" min="1" max="5" oninput="upScore('E_p1','E_i1','E_s1')"></div>
+        <div class="fg"><label>ผลกระทบ</label><input type="number" id="E_i1" min="1" max="5" oninput="upScore('E_p1','E_i1','E_s1')"></div>
+        <div class="score-box" id="E_s1">—</div>
+      </div>
+      <div class="fg"><label>ผลดำเนินการ</label><textarea id="E_action"></textarea></div>
+      <div class="fg"><label>วิธีการจัดการ</label>
+        <select id="E_method"><option>ยอมรับ (Take)</option><option>ลดผลกระทบ (Treat)</option><option>โอนถ่าย (Transfer)</option><option>หลีกเลี่ยง (Terminate)</option></select></div>
+      <div class="fg"><label>ปัญหาอุปสรรค</label><textarea id="E_obstacle"></textarea></div>
+      <div class="fg"><label>ผู้รับผิดชอบ</label><input type="text" id="E_owner"></div>
+      <div class="fg"><label>ฝ่าย/หน่วยงาน</label><select id="E_dept">
+        <optgroup label="ฝ่ายบริหาร"><option>ฝ่ายตรวจสอบภายใน</option><option>ฝ่ายการประชุมและยานพาหนะ</option><option>ฝ่ายประชาสัมพันธ์</option><option>ฝ่ายสารสนเทศ</option></optgroup>
+        <optgroup label="ฝ่ายปฏิบัติการ"><option>ฝ่ายตลาดและจัดส่งสินค้า</option><option>ฝ่ายกิจการพิเศษ</option></optgroup>
+        <optgroup label="ฝ่ายวางแผนและความเสี่ยง"><option>ฝ่ายวางแผนและงบประมาณ</option><option>ฝ่ายติดตามและประเมินผล</option><option>ฝ่ายบริหารความเสี่ยง</option></optgroup>
+        <optgroup label="ฝ่ายสนับสนุน"><option>ฝ่ายบริหารบุคคล</option><option>ฝ่ายจัดหาและพัสดุ</option><option>ฝ่ายกฎหมาย</option></optgroup>
+        <optgroup label="ฝ่ายการเงินและบัญชี"><option>ฝ่ายบัญชี</option><option>ฝ่ายการเงิน</option></optgroup>
+        <optgroup label="สำนักงานตลาดสาขา"><option>สำนักงานตลาดสาขาตลิ่งชัน</option><option>สำนักงานตลาดสาขาปากคลองตลาด</option><option>สำนักงานตลาดสาขาบางคล้า</option><option>สำนักงานตลาดสาขาหนองม่วง</option><option>สำนักงานตลาดสาขาลำพูน</option></optgroup>
+      </select></div>
+      <div class="sub-title">หลังการจัดการ</div>
+      <div class="row3">
+        <div class="fg"><label>โอกาสเกิด</label><input type="number" id="E_p2" min="1" max="5" oninput="upScore('E_p2','E_i2','E_s2')"></div>
+        <div class="fg"><label>ผลกระทบ</label><input type="number" id="E_i2" min="1" max="5" oninput="upScore('E_p2','E_i2','E_s2')"></div>
+        <div class="score-box" id="E_s2">—</div>
+      </div>
+      <div class="fg"><label>สถานะ</label>
+        <select id="E_status"><option value="✓">✓ เสร็จสิ้น</option><option value="×">× ไม่สามารถจัดการได้</option><option value="○">○ ระหว่างดำเนินการ</option></select></div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:18px;">
+        <button class="btn btn-primary" onclick="doEditSave()">💾 บันทึกการแก้ไข</button>
+        <button class="btn btn-gray" onclick="closeModal()">❌ ยกเลิก</button>
+      </div>
+    </div>
+  </div>
+</div>
+ 
+<!-- ADD USER MODAL -->
+<div class="modal" id="addUserModal">
+  <div class="modal-inner" style="max-width:460px;">
+    <div class="modal-hdr"><h2 id="addUserTitle">➕ เพิ่มผู้ใช้ใหม่</h2><button class="close-btn" onclick="closeUserModal()">×</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="EU_idx">
+      <div class="fg"><label>ชื่อแสดง (Display Name) <span class="req">*</span></label><input type="text" id="EU_name" placeholder="เช่น นายสมชาย ใจดี"></div>
+      <div class="fg"><label>ชื่อผู้ใช้ (Username) <span class="req">*</span></label><input type="text" id="EU_username" placeholder="เช่น somchai" autocomplete="off"></div>
+      <div class="fg"><label>รหัสผ่าน <span class="req" id="EU_passReq">*</span></label>
+        <div class="pw-wrap"><input type="password" id="EU_pass" placeholder="อย่างน้อย 6 ตัวอักษร" autocomplete="new-password"><button class="pw-eye" onclick="togglePwModal()">👁️</button></div>
+        <small id="EU_passHint"></small>
+      </div>
+      <div class="fg"><label>ระดับสิทธิ์ <span class="req">*</span></label>
+        <select id="EU_role">
+          <option value="admin">👑 Admin — เข้าถึงทุกฟังก์ชัน</option>
+          <option value="editor" selected>✏️ Editor — บันทึก/แก้ไข ดูได้ทุกอย่าง</option>
+          <option value="viewer">👁️ Viewer — ดูได้อย่างเดียว</option>
+        </select>
+      </div>
+      <div class="fg"><label>ฝ่าย/หน่วยงาน</label>
+        <select id="EU_dept"><option value="">-- ทั่วไป --</option>
+          <optgroup label="ฝ่ายบริหาร"><option>ฝ่ายตรวจสอบภายใน</option><option>ฝ่ายการประชุมและยานพาหนะ</option><option>ฝ่ายประชาสัมพันธ์</option><option>ฝ่ายสารสนเทศ</option></optgroup>
+          <optgroup label="ฝ่ายปฏิบัติการ"><option>ฝ่ายตลาดและจัดส่งสินค้า</option><option>ฝ่ายกิจการพิเศษ</option></optgroup>
+          <optgroup label="ฝ่ายวางแผนและความเสี่ยง"><option>ฝ่ายวางแผนและงบประมาณ</option><option>ฝ่ายติดตามและประเมินผล</option><option>ฝ่ายบริหารความเสี่ยง</option></optgroup>
+          <optgroup label="ฝ่ายสนับสนุน"><option>ฝ่ายบริหารบุคคล</option><option>ฝ่ายจัดหาและพัสดุ</option><option>ฝ่ายกฎหมาย</option></optgroup>
+          <optgroup label="ฝ่ายการเงินและบัญชี"><option>ฝ่ายบัญชี</option><option>ฝ่ายการเงิน</option></optgroup>
+          <optgroup label="สำนักงานตลาดสาขา"><option>สำนักงานตลาดสาขาตลิ่งชัน</option><option>สำนักงานตลาดสาขาปากคลองตลาด</option><option>สำนักงานตลาดสาขาบางคล้า</option><option>สำนักงานตลาดสาขาหนองม่วง</option><option>สำนักงานตลาดสาขาลำพูน</option></optgroup>
+        </select>
+      </div>
+      <div class="fg"><label>สถานะบัญชี</label>
+        <select id="EU_active"><option value="1">✅ เปิดใช้งาน</option><option value="0">🚫 ระงับใช้งาน</option></select>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:18px;">
+        <button class="btn btn-primary" onclick="saveUser()">💾 บันทึก</button>
+        <button class="btn btn-gray" onclick="closeUserModal()">❌ ยกเลิก</button>
+      </div>
+    </div>
+  </div>
+</div>
+ 
+<div id="toast"></div>
+ 
+<script>
+// ============================================================
+//  CONSTANTS & STATE
+// ============================================================
+var DB_KEY = 'risk_v52';
+var USERS_KEY = 'risk_users_v52';
+var SESSION_KEY = 'risk_session_v52';
+ 
+var DB = [];
+var USERS = [];
+var VIEW = [];
+var hasFilter = false;
+var charts = {};
+var toastT;
+var idb = null;
+var currentUser = null; // { username, name, role, dept }
+ 
+// ============================================================
+//  ROLE PERMISSIONS
+//  admin  : all
+//  editor : dashboard, matrix, add, manage data (no user mgmt)
+//  viewer : dashboard, matrix, manage data (read-only)
+// ============================================================
+var PERMS = {
+  admin:  { canAdd:true,  canEdit:true,  canDelete:true,  canExport:true,  canImport:true,  canUserMgmt:true  },
+  editor: { canAdd:true,  canEdit:true,  canDelete:false, canExport:true,  canImport:false, canUserMgmt:false },
+  viewer: { canAdd:false, canEdit:false, canDelete:false, canExport:true,  canImport:false, canUserMgmt:false }
+};
+ 
+function perm(key){ return currentUser && PERMS[currentUser.role] && PERMS[currentUser.role][key]; }
+ 
+// ============================================================
+//  DEFAULT USERS (first run)
+// ============================================================
+var DEFAULT_USERS = [
+  { username:'admin',   name:'ผู้ดูแลระบบ',        role:'admin',  dept:'ฝ่ายบริหารความเสี่ยง', pwHash: simpleHash('admin1234'),  active:1, created: new Date().toISOString() },
+  { username:'editor1', name:'นักวิเคราะห์ความเสี่ยง', role:'editor', dept:'ฝ่ายบริหารความเสี่ยง', pwHash: simpleHash('editor1234'), active:1, created: new Date().toISOString() },
+  { username:'viewer1', name:'ผู้บริหารระดับสูง',    role:'viewer', dept:'',                     pwHash: simpleHash('viewer1234'), active:1, created: new Date().toISOString() }
+];
+ 
+// Simple non-cryptographic hash (for demo — not production-safe)
+function simpleHash(str) {
+  var hash = 0;
+  for (var i = 0; i < str.length; i++) {
+    var c = str.charCodeAt(i);
+    hash = ((hash << 5) - hash) + c;
+    hash |= 0;
+  }
+  return 'h_' + Math.abs(hash).toString(36) + '_' + str.length;
+}
+ 
+function checkHash(pw, hash) {
+  return simpleHash(pw) === hash;
+}
+ 
+// ============================================================
+//  INDEXED DB
+// ============================================================
+function idbOpen() {
+  return new Promise(function(resolve) {
+    if (!window.indexedDB) { resolve(false); return; }
+    try {
+      var req = indexedDB.open('RiskDB52', 1);
+      req.onupgradeneeded = function(e) { e.target.result.createObjectStore('kv'); };
+      req.onsuccess = function(e) { idb = e.target.result; resolve(true); };
+      req.onerror   = function() { resolve(false); };
+    } catch(ex) { resolve(false); }
+  });
+}
+function idbSet(key, val) {
+  return new Promise(function(resolve) {
+    if (!idb) { resolve(false); return; }
+    try {
+      var tx = idb.transaction('kv','readwrite');
+      tx.objectStore('kv').put(val, key);
+      tx.oncomplete = function(){ resolve(true); };
+      tx.onerror    = function(){ resolve(false); };
+    } catch(ex) { resolve(false); }
+  });
+}
+function idbGet(key) {
+  return new Promise(function(resolve) {
+    if (!idb) { resolve(null); return; }
+    try {
+      var tx = idb.transaction('kv','readonly');
+      var req = tx.objectStore('kv').get(key);
+      req.onsuccess = function(){ resolve(req.result || null); };
+      req.onerror   = function(){ resolve(null); };
+    } catch(ex) { resolve(null); }
+  });
+}
+function idbDel(key) {
+  return new Promise(function(resolve) {
+    if (!idb) { resolve(); return; }
+    try {
+      var tx = idb.transaction('kv','readwrite');
+      tx.objectStore('kv').delete(key);
+      tx.oncomplete = function(){ resolve(); };
+      tx.onerror    = function(){ resolve(); };
+    } catch(ex) { resolve(); }
+  });
+}
+ 
+// SS fallback
+function ssSave(k,d){ try{ sessionStorage.setItem(k,JSON.stringify(d)); }catch(e){} }
+function ssLoad(k){ try{ var v=sessionStorage.getItem(k); return v?JSON.parse(v):null; }catch(e){ return null; } }
+ 
+async function saveDB()    { ssSave(DB_KEY,DB);    await idbSet(DB_KEY,    JSON.stringify(DB)); }
+async function saveUsers() { ssSave(USERS_KEY,USERS); await idbSet(USERS_KEY, JSON.stringify(USERS)); }
+ 
+async function loadDB() {
+  var r = await idbGet(DB_KEY);
+  if (r) { try{ var d=JSON.parse(r); if(Array.isArray(d)) return d; }catch(e){} }
+  var ss = ssLoad(DB_KEY);
+  return (ss && Array.isArray(ss)) ? ss : [];
+}
+async function loadUsers() {
+  var r = await idbGet(USERS_KEY);
+  if (r) { try{ var d=JSON.parse(r); if(Array.isArray(d) && d.length) return d; }catch(e){} }
+  var ss = ssLoad(USERS_KEY);
+  if (ss && Array.isArray(ss) && ss.length) return ss;
+  return null; // first run
+}
+ 
+// ============================================================
+//  UTILS
+// ============================================================
+function h(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function fmtDate(iso){
+  if(!iso) return '—';
+  var d = new Date(iso);
+  return ('0'+d.getDate()).slice(-2)+'/'+('0'+(d.getMonth()+1)).slice(-2)+'/'+(d.getFullYear()+543)+' '+('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2);
+}
+function lvl(s){ if(s>=15)return'สูงมาก'; if(s>=10)return'สูง'; if(s>=5)return'กลาง'; if(s>=3)return'ต่ำ'; return'ต่ำมาก'; }
+function lvlCls(s){ if(s>=15)return'b-vhigh'; if(s>=10)return'b-high'; if(s>=5)return'b-med'; if(s>=3)return'b-low'; return'b-vlow'; }
+function gv(id){ var el=document.getElementById(id); return el?el.value.trim():''; }
+function sv(id,v){ var el=document.getElementById(id); if(el)el.value=v||''; }
+function roleLbl(r){ return r==='admin'?'👑 Admin':r==='editor'?'✏️ Editor':'👁️ Viewer'; }
+function roleCls(r){ return r==='admin'?'r-admin':r==='editor'?'r-editor':'r-viewer'; }
+ 
+function toast(msg,type){
+  var t=document.getElementById('toast');
+  t.textContent=msg; t.className='show '+(type||'t-ok');
+  if(toastT)clearTimeout(toastT);
+  toastT=setTimeout(function(){ t.className=''; },3500);
+}
+function upScore(pid,iid,sid){
+  var p=parseInt(document.getElementById(pid).value)||0;
+  var i=parseInt(document.getElementById(iid).value)||0;
+  var s=p*i;
+  var el=document.getElementById(sid);
+  if(!el)return;
+  el.innerHTML=s>0?p+'×'+i+'='+s+'<br><span style="font-size:.78em;">'+lvl(s)+'</span>':'—';
+}
+ 
+// ============================================================
+//  LOGIN / LOGOUT
+// ============================================================
+function togglePw(){
+  var el=document.getElementById('inPass');
+  el.type=el.type==='password'?'text':'password';
+}
+function togglePwModal(){
+  var el=document.getElementById('EU_pass');
+  el.type=el.type==='password'?'text':'password';
+}
+ 
+function doLogin(){
+  var username = document.getElementById('inUser').value.trim();
+  var password  = document.getElementById('inPass').value;
+  var errEl     = document.getElementById('loginErr');
+  var btnEl     = document.getElementById('btnLogin');
+ 
+  errEl.classList.remove('show');
+  if(!username||!password){ errEl.textContent='❌ กรุณากรอกชื่อผู้ใช้และรหัสผ่าน'; errEl.classList.add('show'); return; }
+ 
+  var user = USERS.find(function(u){ return u.username===username && u.active===1; });
+  if(!user || !checkHash(password, user.pwHash)){
+    errEl.textContent='❌ ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง หรือบัญชีถูกระงับ';
+    errEl.classList.add('show');
+    document.getElementById('inPass').value='';
+    return;
+  }
+ 
+  currentUser = { username:user.username, name:user.name, role:user.role, dept:user.dept };
+  ssSave(SESSION_KEY, currentUser);
+ 
+  btnEl.disabled=true; btnEl.textContent='⏳ กำลังเข้าระบบ...';
+  setTimeout(function(){
+    btnEl.disabled=false; btnEl.textContent='🔐 เข้าสู่ระบบ';
+    document.getElementById('loginScreen').style.display='none';
+    document.getElementById('appScreen').style.display='block';
+    setupApp();
+  },600);
+}
+ 
+function doLogout(){
+  if(!confirm('ต้องการออกจากระบบ?')) return;
+  currentUser=null;
+  try{ sessionStorage.removeItem(SESSION_KEY); }catch(e){}
+  document.getElementById('appScreen').style.display='none';
+  document.getElementById('loginScreen').style.display='flex';
+  document.getElementById('inUser').value='';
+  document.getElementById('inPass').value='';
+  document.getElementById('loginErr').classList.remove('show');
+  goTab(0);
+  toast('👋 ออกจากระบบแล้ว','t-info');
+}
+ 
+// ============================================================
+//  APP SETUP (post-login)
+// ============================================================
+function setupApp(){
+  // Header user info
+  var av=document.getElementById('uAvatar');
+  var nm=document.getElementById('uName');
+  var rl=document.getElementById('uRoleLbl');
+  if(av) av.textContent=currentUser.name.charAt(0)||'?';
+  if(nm) nm.textContent=currentUser.name;
+  if(rl) rl.textContent=roleLbl(currentUser.role);
+ 
+  // Tab visibility
+  var tabAdd   = document.getElementById('tabAdd');
+  var tabAdmin = document.getElementById('tabAdmin');
+  if(tabAdd){
+    if(!perm('canAdd')){ tabAdd.classList.add('locked'); tabAdd.title='สิทธิ์ Viewer ไม่สามารถบันทึกข้อมูลได้'; tabAdd.onclick=function(){ toast('🔒 คุณไม่มีสิทธิ์บันทึกข้อมูล','t-err'); }; }
+    else{ tabAdd.classList.remove('locked'); tabAdd.onclick=function(){ goTab(2); }; }
+  }
+  if(tabAdmin){
+    if(!perm('canUserMgmt')){ tabAdmin.classList.add('locked'); tabAdmin.title='เฉพาะ Admin เท่านั้น'; tabAdmin.onclick=function(){ toast('🔒 เฉพาะ Admin เท่านั้น','t-err'); }; }
+    else{ tabAdmin.classList.remove('locked'); tabAdmin.onclick=function(){ goTab(4); }; }
+  }
+ 
+  renderDash();
+  renderTable();
+  refreshDeptFilter();
+  toast('✅ ยินดีต้อนรับ '+currentUser.name+' ('+roleLbl(currentUser.role)+')','t-ok');
+}
+ 
+// ============================================================
+//  TABS
+// ============================================================
+function goTab(n){
+  document.querySelectorAll('.panel').forEach(function(el,i){ el.className='panel'+(i===n?' on':''); });
+  document.querySelectorAll('.tab').forEach(function(el,i){ el.className='tab'+(i===n?' on':(el.classList.contains('locked')?' locked':'')); });
+  if(n===0) renderDash();
+  if(n===2) renderFormPanel();
+  if(n===3){ renderTblActions(); renderTable(); refreshDeptFilter(); }
+  if(n===4) renderAdminPanel();
+}
+ 
+// ============================================================
+//  FORM PANEL (dynamic based on role)
+// ============================================================
+var DEPT_OPTIONS = '<optgroup label="ฝ่ายบริหาร"><option>ฝ่ายตรวจสอบภายใน</option><option>ฝ่ายการประชุมและยานพาหนะ</option><option>ฝ่ายประชาสัมพันธ์</option><option>ฝ่ายสารสนเทศ</option></optgroup><optgroup label="ฝ่ายปฏิบัติการ"><option>ฝ่ายตลาดและจัดส่งสินค้า</option><option>ฝ่ายกิจการพิเศษ</option></optgroup><optgroup label="ฝ่ายวางแผนและความเสี่ยง"><option>ฝ่ายวางแผนและงบประมาณ</option><option>ฝ่ายติดตามและประเมินผล</option><option>ฝ่ายบริหารความเสี่ยง</option></optgroup><optgroup label="ฝ่ายสนับสนุน"><option>ฝ่ายบริหารบุคคล</option><option>ฝ่ายจัดหาและพัสดุ</option><option>ฝ่ายกฎหมาย</option></optgroup><optgroup label="ฝ่ายการเงินและบัญชี"><option>ฝ่ายบัญชี</option><option>ฝ่ายการเงิน</option></optgroup><optgroup label="สำนักงานตลาดสาขา"><option>สำนักงานตลาดสาขาตลิ่งชัน</option><option>สำนักงานตลาดสาขาปากคลองตลาด</option><option>สำนักงานตลาดสาขาบางคล้า</option><option>สำนักงานตลาดสาขาหนองม่วง</option><option>สำนักงานตลาดสาขาลำพูน</option></optgroup>';
+ 
+function renderFormPanel(){
+  var el=document.getElementById('p2content');
+  if(!el) return;
+  if(!perm('canAdd')){
+    el.innerHTML='<div class="no-access"><div class="icon">🔒</div><h3 style="color:#92400e;margin-bottom:8px;">ไม่มีสิทธิ์เข้าถึง</h3><p>สิทธิ์ <strong>Viewer</strong> ไม่สามารถบันทึกข้อมูลความเสี่ยงได้<br>กรุณาติดต่อผู้ดูแลระบบเพื่อขอสิทธิ์ Editor หรือ Admin</p></div>';
+    return;
+  }
+  el.innerHTML=`<div class="form-card">
+    <h2 class="sec-title">📝 บันทึกข้อมูลความเสี่ยง</h2>
+    <div class="fg"><label>เหตุการณ์ <span class="req">*</span></label><textarea id="F_event" placeholder="ระบุเหตุการณ์ที่อาจก่อให้เกิดความเสี่ยง"></textarea></div>
+    <div class="fg"><label>ความเสี่ยง <span class="req">*</span></label><textarea id="F_risk" placeholder="ระบุความเสี่ยงที่อาจเกิดขึ้น"></textarea></div>
+    <div class="fg"><label>ประเภทความเสี่ยง <span class="req">*</span></label>
+      <select id="F_rtype"><option value="">-- เลือกประเภท --</option><option>ด้านกลยุทธ์</option><option>ด้านการดำเนินงาน</option><option>ด้านการเงิน</option><option>ด้านการปฏิบัติตามกฎระเบียบ</option></select></div>
+    <div class="sub-title">📊 ระดับความเสี่ยงก่อนการจัดการ</div>
+    <div class="row3">
+      <div class="fg"><label>โอกาสเกิด (1-5) <span class="req">*</span></label><input type="number" id="F_p1" min="1" max="5" placeholder="1-5" oninput="upScore('F_p1','F_i1','F_s1')"><small>1=Remote … 5=Certain</small></div>
+      <div class="fg"><label>ผลกระทบ (1-5) <span class="req">*</span></label><input type="number" id="F_i1" min="1" max="5" placeholder="1-5" oninput="upScore('F_p1','F_i1','F_s1')"><small>1=Very Low … 5=Very High</small></div>
+      <div class="score-box" id="F_s1">—</div>
+    </div>
+    <div class="fg"><label>ผลดำเนินการ <span class="req">*</span></label><textarea id="F_action" placeholder="ระบุผลการดำเนินการ"></textarea></div>
+    <div class="fg"><label>วิธีการจัดการความเสี่ยง <span class="req">*</span></label>
+      <select id="F_method"><option value="">-- เลือกวิธีการ --</option><option>ยอมรับ (Take)</option><option>ลดผลกระทบ (Treat)</option><option>โอนถ่าย (Transfer)</option><option>หลีกเลี่ยง (Terminate)</option></select></div>
+    <div class="fg"><label>ปัญหาอุปสรรค</label><textarea id="F_obstacle" placeholder="ระบุปัญหาอุปสรรค (ถ้ามี)"></textarea></div>
+    <div class="fg"><label>ผู้รับผิดชอบ <span class="req">*</span></label><input type="text" id="F_owner" placeholder="ระบุชื่อผู้รับผิดชอบ"></div>
+    <div class="fg"><label>ฝ่าย/หน่วยงาน <span class="req">*</span></label><select id="F_dept"><option value="">-- เลือกฝ่าย --</option>${DEPT_OPTIONS}</select></div>
+    <div class="sub-title">📉 ระดับความเสี่ยงคงเหลือ (หลังจัดการ)</div>
+    <div class="row3">
+      <div class="fg"><label>โอกาสเกิด (1-5) <span class="req">*</span></label><input type="number" id="F_p2" min="1" max="5" placeholder="1-5" oninput="upScore('F_p2','F_i2','F_s2')"></div>
+      <div class="fg"><label>ผลกระทบ (1-5) <span class="req">*</span></label><input type="number" id="F_i2" min="1" max="5" placeholder="1-5" oninput="upScore('F_p2','F_i2','F_s2')"></div>
+      <div class="score-box" id="F_s2">—</div>
+    </div>
+    <div class="fg"><label>สถานะความเสี่ยง <span class="req">*</span></label>
+      <select id="F_status"><option value="">-- เลือกสถานะ --</option><option value="✓">✓ ดำเนินการเสร็จสิ้น</option><option value="×">× ยังไม่สามารถจัดการได้</option><option value="○">○ อยู่ระหว่างดำเนินการ</option></select></div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:18px;">
+      <button class="btn btn-primary" onclick="doSave()">💾 บันทึกข้อมูล</button>
+      <button class="btn btn-gray" onclick="doClear()">🔄 ล้างฟอร์ม</button>
+    </div>
+  </div>`;
+}
+ 
+// ============================================================
+//  FORM SAVE
+// ============================================================
+function doSave(){
+  if(!perm('canAdd')){ toast('🔒 ไม่มีสิทธิ์บันทึก','t-err'); return; }
+  var ev=gv('F_event'),risk=gv('F_risk'),rtype=gv('F_rtype');
+  var p1=parseInt(gv('F_p1')),i1=parseInt(gv('F_i1'));
+  var action=gv('F_action'),method=gv('F_method'),obstacle=gv('F_obstacle');
+  var owner=gv('F_owner'),dept=gv('F_dept');
+  var p2=parseInt(gv('F_p2')),i2=parseInt(gv('F_i2'));
+  var status=gv('F_status');
+  var missing=[];
+  if(!ev)missing.push('เหตุการณ์'); if(!risk)missing.push('ความเสี่ยง'); if(!rtype)missing.push('ประเภท');
+  if(!p1||p1<1||p1>5)missing.push('โอกาสเกิด(ก่อน)'); if(!i1||i1<1||i1>5)missing.push('ผลกระทบ(ก่อน)');
+  if(!action)missing.push('ผลดำเนินการ'); if(!method)missing.push('วิธีการจัดการ');
+  if(!owner)missing.push('ผู้รับผิดชอบ'); if(!dept)missing.push('ฝ่าย');
+  if(!p2||p2<1||p2>5)missing.push('โอกาสเกิด(หลัง)'); if(!i2||i2<1||i2>5)missing.push('ผลกระทบ(หลัง)');
+  if(!status)missing.push('สถานะ');
+  if(missing.length){ toast('❌ กรุณากรอก: '+missing.join(', '),'t-err'); return; }
+  var now=new Date().toISOString();
+  DB.push({ id:Date.now(), event:ev, risk:risk, rtype:rtype,
+    p1:p1,i1:i1,s1:p1*i1,lv1:lvl(p1*i1), action:action, method:method,
+    obstacle:obstacle, owner:owner, dept:dept, p2:p2,i2:i2,s2:p2*i2,lv2:lvl(p2*i2),
+    status:status, createdBy:currentUser.username, created:now, updated:now
+  });
+  saveDB(); doClear();
+  toast('✅ บันทึกข้อมูลเรียบร้อย!','t-ok');
+}
+ 
+function doClear(){
+  ['F_event','F_risk','F_rtype','F_p1','F_i1','F_action','F_method','F_obstacle','F_owner','F_dept','F_p2','F_i2','F_status'].forEach(function(id){
+    var el=document.getElementById(id); if(!el)return;
+    if(el.tagName==='SELECT')el.selectedIndex=0; else el.value='';
+  });
+  var s1=document.getElementById('F_s1'), s2=document.getElementById('F_s2');
+  if(s1)s1.innerHTML='—'; if(s2)s2.innerHTML='—';
+}
+ 
+// ============================================================
+//  TABLE
+// ============================================================
+function renderTblActions(){
+  var el=document.getElementById('tblActions'); if(!el)return;
+  var html='';
+  if(currentUser&&currentUser.role==='admin') html+='<button class="btn btn-primary btn-sm" onclick="loadSample()">📊 โหลดตัวอย่าง</button>';
+  if(perm('canExport')) html+='<button class="btn btn-green btn-sm" onclick="doExport()">📥 Export Excel</button>';
+  if(perm('canImport')) html+='<button class="btn btn-blue btn-sm" onclick="document.getElementById(\'impFile\').click()">📤 Import Excel</button><input type="file" id="impFile" accept=".xlsx,.xls" style="display:none" onchange="doImport(event)">';
+  if(currentUser&&currentUser.role==='admin') html+='<button class="btn btn-red btn-sm" onclick="doClearAll()">🗑️ ล้างทั้งหมด</button>';
+  el.innerHTML=html;
+}
+ 
+function renderTable(){
+  var rows=hasFilter?VIEW:DB;
+  var tbody=document.getElementById('tbody');
+  var count=document.getElementById('recCount');
+  if(count) count.textContent=hasFilter?'แสดง '+rows.length+' จาก '+DB.length+' รายการ':'ทั้งหมด: '+DB.length+' รายการ';
+  if(!tbody)return;
+  if(DB.length===0){tbody.innerHTML='<tr><td colspan="14" style="text-align:center;padding:36px;color:#9ca3af;">📭 ไม่มีข้อมูล</td></tr>';return;}
+  if(rows.length===0){tbody.innerHTML='<tr><td colspan="14" style="text-align:center;padding:36px;color:#9ca3af;">🔍 ไม่พบข้อมูลที่ตรงกับเงื่อนไข</td></tr>';return;}
+ 
+  tbody.innerHTML=rows.map(function(r,idx){
+    var ri=DB.indexOf(r);
+    var canEdit = perm('canEdit') && (currentUser.role==='admin' || r.createdBy===currentUser.username);
+    var canDel  = perm('canDelete');
+    var actions = canEdit
+      ? '<button class="btn btn-orange btn-sm" onclick="openEdit('+ri+')">✏️</button>'
+      : '<span style="color:#9ca3af;font-size:.78em;">ดูอย่างเดียว</span>';
+    if(canDel) actions+=' <button class="btn btn-red btn-sm" onclick="doDelete('+ri+')">🗑️</button>';
+    return '<tr>'+
+      '<td>'+(idx+1)+'</td>'+
+      '<td style="max-width:120px;word-break:break-word;">'+h(r.event)+'</td>'+
+      '<td style="max-width:120px;word-break:break-word;">'+h(r.risk)+'</td>'+
+      '<td><span class="badge b-type">'+h(r.rtype)+'</span></td>'+
+      '<td><span class="badge '+lvlCls(r.s1)+'">'+r.p1+'×'+r.i1+'='+r.s1+'<br>'+r.lv1+'</span></td>'+
+      '<td style="max-width:130px;font-size:.82em;">'+h(r.action).substring(0,55)+(r.action.length>55?'…':'')+'</td>'+
+      '<td><span class="badge '+lvlCls(r.s2)+'">'+r.p2+'×'+r.i2+'='+r.s2+'<br>'+r.lv2+'</span></td>'+
+      '<td style="text-align:center;font-size:1.2em;">'+r.status+'</td>'+
+      '<td style="font-size:.8em;">'+h(r.method)+'</td>'+
+      '<td>'+h(r.owner)+'</td>'+
+      '<td style="font-size:.79em;">'+h(r.dept)+'</td>'+
+      '<td style="font-size:.79em;color:#6b7280;">'+h(r.createdBy||'—')+'</td>'+
+      '<td style="font-size:.77em;white-space:nowrap;">'+fmtDate(r.created)+'</td>'+
+      '<td style="white-space:nowrap;">'+actions+'</td>'+
+    '</tr>';
+  }).join('');
+}
+ 
+// Filter
+function doFilter(){
+  var txt=(gv('srch')||'').toLowerCase(),typ=gv('fType'),dpt=gv('fDept'),lev=gv('fLevel'),sts=gv('fStatus');
+  hasFilter=!!(txt||typ||dpt||lev||sts);
+  VIEW=DB.filter(function(r){
+    var mt=!txt||[r.event,r.risk,r.owner,r.dept].some(function(v){return v&&v.toLowerCase().includes(txt);});
+    return mt&&(!typ||r.rtype===typ)&&(!dpt||r.dept===dpt)&&(!lev||r.lv2===lev)&&(!sts||r.status===sts);
+  });
+  renderTable();
+}
+function clearFilter(){
+  ['srch','fType','fDept','fLevel','fStatus'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});
+  hasFilter=false;VIEW=[];renderTable();
+}
+function refreshDeptFilter(){
+  var depts=[];DB.forEach(function(r){if(r.dept&&depts.indexOf(r.dept)<0)depts.push(r.dept);});depts.sort();
+  var sel=document.getElementById('fDept');if(!sel)return;
+  var cur=sel.value;sel.innerHTML='<option value="">ทุกฝ่าย</option>';
+  depts.forEach(function(d){sel.innerHTML+='<option>'+h(d)+'</option>';});sel.value=cur;
+}
+ 
+// Delete
+function doDelete(idx){
+  if(!perm('canDelete')){ toast('🔒 ไม่มีสิทธิ์ลบ','t-err'); return; }
+  var r=DB[idx];if(!r)return;
+  if(!confirm('ต้องการลบ:\n"'+r.event+'" ?'))return;
+  DB.splice(idx,1); saveDB(); doFilter(); refreshDeptFilter(); renderDash();
+  toast('🗑️ ลบข้อมูลแล้ว','t-warn');
+}
+async function doClearAll(){
+  if(currentUser.role!=='admin'){ toast('🔒 เฉพาะ Admin','t-err'); return; }
+  if(!DB.length){ toast('ไม่มีข้อมูล','t-warn'); return; }
+  if(!confirm('⚠️ ลบข้อมูลทั้งหมด '+DB.length+' รายการ?'))return;
+  if(!confirm('❗ ยืนยันอีกครั้ง'))return;
+  DB=[];VIEW=[];hasFilter=false;
+  await idbDel(DB_KEY); try{sessionStorage.removeItem(DB_KEY);}catch(e){}
+  renderTable();refreshDeptFilter();renderDash();
+  toast('✅ ลบทั้งหมดแล้ว','t-warn');
+}
+ 
+// Edit Modal
+function openEdit(idx){
+  if(!perm('canEdit')){ toast('🔒 ไม่มีสิทธิ์แก้ไข','t-err'); return; }
+  var r=DB[idx];if(!r)return;
+  if(currentUser.role!=='admin' && r.createdBy!==currentUser.username){ toast('🔒 แก้ไขได้เฉพาะข้อมูลที่คุณบันทึก','t-err'); return; }
+  sv('E_idx',idx);sv('E_event',r.event);sv('E_risk',r.risk);sv('E_rtype',r.rtype);
+  sv('E_p1',r.p1);sv('E_i1',r.i1);sv('E_action',r.action);sv('E_method',r.method);
+  sv('E_obstacle',r.obstacle);sv('E_owner',r.owner);sv('E_dept',r.dept);
+  sv('E_p2',r.p2);sv('E_i2',r.i2);sv('E_status',r.status);
+  upScore('E_p1','E_i1','E_s1');upScore('E_p2','E_i2','E_s2');
+  document.getElementById('editModal').style.display='block';
+}
+function closeModal(){ document.getElementById('editModal').style.display='none'; }
+window.addEventListener('click',function(e){
+  if(e.target===document.getElementById('editModal'))closeModal();
+  if(e.target===document.getElementById('addUserModal'))closeUserModal();
+});
+function doEditSave(){
+  if(!perm('canEdit')){ toast('🔒 ไม่มีสิทธิ์แก้ไข','t-err'); return; }
+  var idx=parseInt(gv('E_idx'));
+  var p1=parseInt(gv('E_p1')),i1=parseInt(gv('E_i1')),p2=parseInt(gv('E_p2')),i2=parseInt(gv('E_i2'));
+  if([p1,i1,p2,i2].some(function(v){return!v||v<1||v>5;})){toast('❌ ค่าต้องอยู่ระหว่าง 1-5','t-err');return;}
+  DB[idx]=Object.assign({},DB[idx],{
+    event:gv('E_event'),risk:gv('E_risk'),rtype:gv('E_rtype'),
+    p1:p1,i1:i1,s1:p1*i1,lv1:lvl(p1*i1),
+    action:gv('E_action'),method:gv('E_method'),obstacle:gv('E_obstacle'),
+    owner:gv('E_owner'),dept:gv('E_dept'),
+    p2:p2,i2:i2,s2:p2*i2,lv2:lvl(p2*i2),
+    status:gv('E_status'),updatedBy:currentUser.username,updated:new Date().toISOString()
+  });
+  saveDB();closeModal();doFilter();refreshDeptFilter();renderDash();
+  toast('✅ แก้ไขข้อมูลเรียบร้อย!','t-ok');
+}
+ 
+// Sample / Export / Import
+async function loadSample(){
+  if(currentUser.role!=='admin'){ toast('🔒 เฉพาะ Admin','t-err'); return; }
+  if(!confirm('โหลดข้อมูลตัวอย่าง 4 รายการ? (ข้อมูลเดิมจะถูกแทนที่)'))return;
+  var n=new Date().toISOString();
+  DB=[
+    {id:1,event:'ไม่สามารถจัดทำ KPI ของพนักงานองค์การตลาดได้',risk:'ไม่สามารถวัดผลการปฏิบัติงานพนักงานได้',rtype:'ด้านการดำเนินงาน',p1:3,i1:5,s1:15,lv1:'สูง',action:'ยังไม่สามารถดำเนินการจัดทำ KPI ในปีงบประมาณ 2568',method:'ยอมรับ (Take)',obstacle:'มีการเปลี่ยนแปลงนโยบาย',owner:'นายสมชาย ใจดี',dept:'ฝ่ายบริหารบุคคล',p2:5,i2:5,s2:25,lv2:'สูงมาก',status:'×',createdBy:'admin',created:n,updated:n},
+    {id:2,event:'ระบบสารสนเทศขัดข้องในช่วงเวลาสำคัญ',risk:'ไม่สามารถประมวลผลธุรกรรมทางการเงินได้',rtype:'ด้านการดำเนินงาน',p1:2,i1:4,s1:8,lv1:'กลาง',action:'จัดหาระบบสำรอง Backup',method:'ลดผลกระทบ (Treat)',obstacle:'งบประมาณไม่เพียงพอ',owner:'นายวิชัย เทคโน',dept:'ฝ่ายสารสนเทศ',p2:1,i2:3,s2:3,lv2:'ต่ำ',status:'✓',createdBy:'editor1',created:n,updated:n},
+    {id:3,event:'ความผันผวนของราคาสินค้าเกษตรในตลาด',risk:'รายได้ขององค์การตลาดลดลงต่ำกว่าเป้าหมาย',rtype:'ด้านการเงิน',p1:4,i1:4,s1:16,lv1:'สูงมาก',action:'วิเคราะห์แนวโน้มราคาตลาดและปรับกลยุทธ์',method:'ลดผลกระทบ (Treat)',obstacle:'ราคาขึ้นอยู่กับปัจจัยภายนอก',owner:'นางสาวมาลี รักดี',dept:'ฝ่ายการเงิน',p2:3,i2:4,s2:12,lv2:'สูง',status:'○',createdBy:'editor1',created:n,updated:n},
+    {id:4,event:'การเปลี่ยนแปลงกฎระเบียบด้านการจัดซื้อจัดจ้าง',risk:'ขั้นตอนการจัดซื้อล่าช้า',rtype:'ด้านการปฏิบัติตามกฎระเบียบ',p1:3,i1:3,s1:9,lv1:'กลาง',action:'จัดอบรมเจ้าหน้าที่',method:'ลดผลกระทบ (Treat)',obstacle:'',owner:'นายประสิทธิ์ กฎหมาย',dept:'ฝ่ายกฎหมาย',p2:2,i2:2,s2:4,lv2:'ต่ำ',status:'✓',createdBy:'admin',created:n,updated:n}
+  ];
+  VIEW=[];hasFilter=false;await saveDB();
+  renderTable();refreshDeptFilter();renderDash();
+  toast('✅ โหลดตัวอย่าง 4 รายการ','t-ok');
+}
+ 
+function doExport(){
+  if(!perm('canExport')){ toast('🔒 ไม่มีสิทธิ์ Export','t-err'); return; }
+  if(!DB.length){ toast('❌ ไม่มีข้อมูล','t-err'); return; }
+  var rows=DB.map(function(r,i){return{'ลำดับ':i+1,'เหตุการณ์':r.event,'ความเสี่ยง':r.risk,'ประเภทความเสี่ยง':r.rtype,'โอกาสเกิด(ก่อน)':r.p1,'ผลกระทบ(ก่อน)':r.i1,'คะแนน(ก่อน)':r.s1,'ระดับ(ก่อน)':r.lv1,'ผลดำเนินการ':r.action,'วิธีการจัดการ':r.method,'ปัญหาอุปสรรค':r.obstacle||'','ผู้รับผิดชอบ':r.owner,'ฝ่าย':r.dept,'โอกาสเกิด(หลัง)':r.p2,'ผลกระทบ(หลัง)':r.i2,'คะแนน(หลัง)':r.s2,'ระดับ(หลัง)':r.lv2,'สถานะ':r.status,'บันทึกโดย':r.createdBy||'','วันที่บันทึก':fmtDate(r.created)};});
+  var wb=XLSX.utils.book_new();var ws=XLSX.utils.json_to_sheet(rows);
+  XLSX.utils.book_append_sheet(wb,ws,'ความเสี่ยง');
+  XLSX.writeFile(wb,'Risk_Register_'+new Date().toISOString().split('T')[0]+'.xlsx');
+  toast('✅ Export Excel เรียบร้อย','t-ok');
+}
+function doImport(e){
+  if(!perm('canImport')){ toast('🔒 ไม่มีสิทธิ์ Import','t-err'); return; }
+  var file=e.target.files[0];if(!file)return;
+  var reader=new FileReader();
+  reader.onload=async function(ev){
+    try{
+      var arr=new Uint8Array(ev.target.result);var wb=XLSX.read(arr,{type:'array'});
+      var ws=wb.Sheets[wb.SheetNames[0]];var json=XLSX.utils.sheet_to_json(ws);
+      if(!json.length){toast('❌ ไฟล์ว่าง','t-err');return;}
+      if(!confirm('พบข้อมูล '+json.length+' รายการ — นำเข้า (ข้อมูลเดิมถูกแทนที่)?'))return;
+      var n=new Date().toISOString();
+      DB=json.map(function(row,i){
+        var p1=parseInt(row['โอกาสเกิด(ก่อน)'])||1,i1=parseInt(row['ผลกระทบ(ก่อน)'])||1;
+        var p2=parseInt(row['โอกาสเกิด(หลัง)'])||1,i2=parseInt(row['ผลกระทบ(หลัง)'])||1;
+        return{id:Date.now()+i,event:String(row['เหตุการณ์']||''),risk:String(row['ความเสี่ยง']||''),rtype:String(row['ประเภทความเสี่ยง']||'ด้านการดำเนินงาน'),p1:p1,i1:i1,s1:p1*i1,lv1:lvl(p1*i1),action:String(row['ผลดำเนินการ']||''),method:String(row['วิธีการจัดการ']||''),obstacle:String(row['ปัญหาอุปสรรค']||''),owner:String(row['ผู้รับผิดชอบ']||''),dept:String(row['ฝ่าย']||''),p2:p2,i2:i2,s2:p2*i2,lv2:lvl(p2*i2),status:String(row['สถานะ']||'○'),createdBy:currentUser.username,created:n,updated:n};
+      });
+      VIEW=[];hasFilter=false;await saveDB();
+      renderTable();refreshDeptFilter();renderDash();
+      toast('✅ Import สำเร็จ '+DB.length+' รายการ','t-ok');
+    }catch(err){toast('❌ เกิดข้อผิดพลาด: '+err.message,'t-err');}
+  };
+  reader.readAsArrayBuffer(file);e.target.value='';
+}
+ 
+// ============================================================
+//  DASHBOARD
+// ============================================================
+function renderDash(){renderEWS();renderMetrics();renderCharts();}
+function renderEWS(){
+  var high=DB.filter(function(r){return r.s2>=10||r.status==='×';});
+  var box=document.getElementById('ewsBox');if(!box)return;
+  if(!high.length){box.innerHTML='';return;}
+  box.innerHTML='<div class="ews"><h3>🚨 EWS — Early Warning System | พบความเสี่ยงต้องเร่งดำเนินการ '+high.length+' รายการ</h3>'+
+    high.map(function(r,i){return'<div class="ews-item"><strong>'+(i+1)+'. '+h(r.event)+'</strong><br>คงเหลือ: <strong>'+r.s2+' ('+r.lv2+')</strong> | สถานะ: '+(r.status==='×'?'❌ ยังไม่สามารถจัดการ':'⚠️ ต้องติดตาม')+' | ผู้รับผิดชอบ: '+h(r.owner)+'</div>';}).join('')+'</div>';
+}
+function renderMetrics(){
+  var t=DB.length,vh=DB.filter(function(r){return r.s2>=15;}).length,hi=DB.filter(function(r){return r.s2>=10&&r.s2<15;}).length,med=DB.filter(function(r){return r.s2>=5&&r.s2<10;}).length,ok=DB.filter(function(r){return r.status==='✓';}).length;
+  document.getElementById('metricsBox').innerHTML=
+    '<div class="met blue"><div class="met-n">'+t+'</div><div class="met-l">ความเสี่ยงทั้งหมด</div></div>'+
+    '<div class="met red"><div class="met-n">'+vh+'</div><div class="met-l">สูงมาก (15–25)</div></div>'+
+    '<div class="met orange"><div class="met-n">'+hi+'</div><div class="met-l">สูง (10–14)</div></div>'+
+    '<div class="met yellow"><div class="met-n">'+med+'</div><div class="met-l">กลาง (5–9)</div></div>'+
+    '<div class="met green"><div class="met-n">'+ok+'</div><div class="met-l">เสร็จสิ้น ✓</div></div>';
+}
+function renderCharts(){
+  var lv={'ต่ำมาก':0,'ต่ำ':0,'กลาง':0,'สูง':0,'สูงมาก':0};
+  var st={'✓':0,'×':0,'○':0};
+  var ty={'ด้านกลยุทธ์':0,'ด้านการดำเนินงาน':0,'ด้านการเงิน':0,'ด้านการปฏิบัติตามกฎระเบียบ':0};
+  DB.forEach(function(r){if(lv[r.lv2]!==undefined)lv[r.lv2]++;if(st[r.status]!==undefined)st[r.status]++;if(ty[r.rtype]!==undefined)ty[r.rtype]++;});
+  mkChart('ch1','bar',['ต่ำมาก','ต่ำ','กลาง','สูง','สูงมาก'],[lv['ต่ำมาก'],lv['ต่ำ'],lv['กลาง'],lv['สูง'],lv['สูงมาก']],['#1b5e20','#66bb6a','#fdd835','#ef6c00','#c62828'],'c1',false);
+  mkChart('ch2','doughnut',['เสร็จสิ้น (✓)','ยังไม่จัดการ (×)','ระหว่างดำเนินการ (○)'],[st['✓'],st['×'],st['○']],['#16a34a','#dc2626','#2563eb'],'c2',true);
+  mkChart('ch3','pie',Object.keys(ty),Object.values(ty),['#1e3c72','#2563eb','#f59e0b','#16a34a'],'c3',true);
+}
+function mkChart(canvasId,type,labels,data,colors,key,showLegend){
+  if(charts[key]){try{charts[key].destroy();}catch(e){}}
+  var ctx=document.getElementById(canvasId);if(!ctx)return;
+  charts[key]=new Chart(ctx,{type:type,data:{labels:labels,datasets:[{data:data,backgroundColor:colors,borderRadius:type==='bar'?6:0,hoverOffset:6}]},options:{responsive:true,plugins:{legend:{display:showLegend,position:'bottom'}},scales:type==='bar'?{y:{beginAtZero:true,ticks:{stepSize:1}}}:{}}});
+}
+ 
+// ============================================================
+//  USER ADMIN PANEL
+// ============================================================
+function renderAdminPanel(){
+  var el=document.getElementById('p4content');if(!el)return;
+  if(!perm('canUserMgmt')){
+    el.innerHTML='<div class="no-access"><div class="icon">🔒</div><h3 style="color:#92400e;margin-bottom:8px;">ไม่มีสิทธิ์เข้าถึง</h3><p>เฉพาะ <strong>Admin</strong> เท่านั้นที่สามารถจัดการผู้ใช้งานได้</p></div>';
+    return;
+  }
+  var rows=USERS.map(function(u,i){
+    var isMe=u.username===currentUser.username;
+    var activeBadge=u.active?'<span style="background:#d1fae5;color:#065f46;padding:2px 8px;border-radius:5px;font-size:.78em;font-weight:700;">✅ เปิด</span>':'<span style="background:#fee2e2;color:#991b1b;padding:2px 8px;border-radius:5px;font-size:.78em;font-weight:700;">🚫 ระงับ</span>';
+    var editBtn=isMe?'<span style="font-size:.78em;color:#6b7280;">ตัวเอง</span>':('<button class="btn btn-orange btn-sm" onclick="openUserEdit('+i+')">✏️</button> <button class="btn btn-red btn-sm" onclick="deleteUser('+i+')">🗑️</button>');
+    return '<tr>'+
+      '<td>'+(i+1)+'</td>'+
+      '<td><strong>'+h(u.name)+'</strong></td>'+
+      '<td><code style="background:#f1f5f9;padding:2px 7px;border-radius:4px;font-size:.85em;">'+h(u.username)+'</code>'+(isMe?' <span style="font-size:.75em;color:#2563eb;">(คุณ)</span>':'')+'</td>'+
+      '<td><span class="badge-role '+roleCls(u.role)+'">'+roleLbl(u.role)+'</span></td>'+
+      '<td style="font-size:.82em;">'+h(u.dept||'—')+'</td>'+
+      '<td>'+activeBadge+'</td>'+
+      '<td style="font-size:.78em;white-space:nowrap;">'+fmtDate(u.created)+'</td>'+
+      '<td style="white-space:nowrap;">'+editBtn+'</td>'+
+    '</tr>';
+  }).join('');
+ 
+  el.innerHTML=`<div class="form-card">
+    <h2 class="sec-title">⚙️ จัดการผู้ใช้งานระบบ</h2>
+ 
+    <!-- สรุปสิทธิ์ -->
+    <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:18px;margin-bottom:20px;">
+      <h4 style="color:#1e3c72;margin-bottom:14px;font-size:.95em;">🔐 ตารางสิทธิ์การใช้งาน</h4>
+      <div style="overflow-x:auto;">
+        <table style="font-size:.82em;">
+          <thead><tr style="background:#f1f5f9;">
+            <th>ฟังก์ชัน</th>
+            <th style="text-align:center;"><span class="badge-role r-admin">👑 Admin</span></th>
+            <th style="text-align:center;"><span class="badge-role r-editor">✏️ Editor</span></th>
+            <th style="text-align:center;"><span class="badge-role r-viewer">👁️ Viewer</span></th>
+          </tr></thead>
+          <tbody>
+            ${[['ดู Dashboard','yes','yes','yes'],['ดู Risk Matrix','yes','yes','yes'],['บันทึกความเสี่ยง','yes','yes','no'],['แก้ไขข้อมูล (ทุกรายการ)','yes','no','no'],['แก้ไข (เฉพาะที่ตัวเองบันทึก)','yes','yes','no'],['ลบข้อมูล','yes','no','no'],['Export Excel','yes','yes','yes'],['Import Excel','yes','no','no'],['โหลดตัวอย่าง / ล้างทั้งหมด','yes','no','no'],['จัดการผู้ใช้งาน','yes','no','no']].map(function(r){
+              return '<tr><td>'+r[0]+'</td>'+[r[1],r[2],r[3]].map(function(v){return '<td style="text-align:center;"><span class="access-cell '+(v==='yes'?'ac-yes':v==='no'?'ac-no':'ac-own')+'">'+(v==='yes'?'✓':v==='no'?'✗':'บางส่วน')+'</span></td>';}).join('')+'</tr>';
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+ 
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px;">
+      <h4 style="color:#1e3c72;font-size:.95em;">👥 รายชื่อผู้ใช้งาน (${USERS.length} คน)</h4>
+      <button class="btn btn-primary btn-sm" onclick="openUserAdd()">➕ เพิ่มผู้ใช้ใหม่</button>
+    </div>
+ 
+    <div class="user-table-wrap">
+      <table>
+        <thead><tr>
+          <th>#</th><th>ชื่อแสดง</th><th>Username</th><th>สิทธิ์</th><th>ฝ่าย</th><th>สถานะ</th><th>วันที่สร้าง</th><th>จัดการ</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+  </div>`;
+}
+ 
+// USER CRUD
+function openUserAdd(){
+  sv('EU_idx','');sv('EU_name','');sv('EU_username','');sv('EU_pass','');
+  sv('EU_role','editor');sv('EU_dept','');sv('EU_active','1');
+  document.getElementById('EU_passReq').textContent='*';
+  document.getElementById('EU_passHint').textContent='อย่างน้อย 6 ตัวอักษร';
+  document.getElementById('EU_username').disabled=false;
+  document.getElementById('addUserTitle').textContent='➕ เพิ่มผู้ใช้ใหม่';
+  document.getElementById('addUserModal').style.display='block';
+}
+function openUserEdit(i){
+  var u=USERS[i];if(!u)return;
+  sv('EU_idx',i);sv('EU_name',u.name);sv('EU_username',u.username);sv('EU_pass','');
+  sv('EU_role',u.role);sv('EU_dept',u.dept||'');sv('EU_active',u.active?'1':'0');
+  document.getElementById('EU_passReq').textContent='';
+  document.getElementById('EU_passHint').textContent='เว้นว่างหากไม่ต้องการเปลี่ยนรหัสผ่าน';
+  document.getElementById('EU_username').disabled=true;
+  document.getElementById('addUserTitle').textContent='✏️ แก้ไขผู้ใช้: '+h(u.name);
+  document.getElementById('addUserModal').style.display='block';
+}
+function closeUserModal(){ document.getElementById('addUserModal').style.display='none'; }
+ 
+async function saveUser(){
+  var idxStr=gv('EU_idx');
+  var isEdit=(idxStr!=='');
+  var idx=parseInt(idxStr);
+  var name=gv('EU_name'),uname=gv('EU_username'),pass=gv('EU_pass');
+  var role=gv('EU_role'),dept=gv('EU_dept'),active=gv('EU_active')==='1'?1:0;
+ 
+  if(!name){toast('❌ กรุณากรอกชื่อแสดง','t-err');return;}
+  if(!isEdit && !uname){toast('❌ กรุณากรอก Username','t-err');return;}
+  if(!isEdit && !pass){toast('❌ กรุณากรอกรหัสผ่าน','t-err');return;}
+  if(pass && pass.length<6){toast('❌ รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร','t-err');return;}
+ 
+  if(!isEdit){
+    if(USERS.find(function(u){return u.username===uname;})){toast('❌ Username นี้มีอยู่แล้ว','t-err');return;}
+    USERS.push({username:uname,name:name,role:role,dept:dept,pwHash:simpleHash(pass),active:active,created:new Date().toISOString()});
+    toast('✅ เพิ่มผู้ใช้ '+name+' แล้ว','t-ok');
+  } else {
+    var u=USERS[idx];if(!u)return;
+    u.name=name; u.role=role; u.dept=dept; u.active=active;
+    if(pass) u.pwHash=simpleHash(pass);
+    toast('✅ แก้ไขข้อมูล '+name+' แล้ว','t-ok');
+  }
+ 
+  await saveUsers();closeUserModal();renderAdminPanel();
+}
+ 
+async function deleteUser(i){
+  var u=USERS[i];if(!u)return;
+  if(u.username===currentUser.username){toast('❌ ไม่สามารถลบบัญชีตัวเองได้','t-err');return;}
+  if(!confirm('ต้องการลบผู้ใช้ "'+u.name+'" ('+u.username+') ?'))return;
+  USERS.splice(i,1);
+  await saveUsers();renderAdminPanel();
+  toast('🗑️ ลบผู้ใช้แล้ว','t-warn');
+}
+ 
+// ============================================================
+//  INIT
+// ============================================================
+window.addEventListener('DOMContentLoaded', async function(){
+  await idbOpen();
+ 
+  // Load users (or init defaults)
+  var savedUsers = await loadUsers();
+  if(savedUsers && savedUsers.length){ USERS=savedUsers; }
+  else { USERS=DEFAULT_USERS.slice(); await saveUsers(); }
+ 
+  // Load risk data
+  DB = await loadDB();
+ 
+  // Check existing session
+  var sess = ssLoad(SESSION_KEY);
+  if(sess && sess.username){
+    var u=USERS.find(function(u){return u.username===sess.username && u.active===1;});
+    if(u){
+      currentUser=sess;
+      document.getElementById('loginScreen').style.display='none';
+      document.getElementById('appScreen').style.display='block';
+      setupApp();
+      return;
+    }
+  }
+ 
+  // Show login
+  document.getElementById('loginScreen').style.display='flex';
+  document.getElementById('appScreen').style.display='none';
+  document.getElementById('inUser').focus();
+});
+</script>
+</body>
+</html>
